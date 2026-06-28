@@ -1,28 +1,22 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import number
-from esphome.const import CONF_ID
-from .. import TuyaWifiMcuComponent
-#define "TuyaWifiMcuNumber"
-DEPENDENCIES = ['tuya_wifi_mcu']
+from .. import tuya_wifi_mcu_ns, TuyaWifiMcuEntity
 
-tuya_wifi_mcu_ns = cg.esphome_ns.namespace('tuya_wifi_mcu')
-tuyaWifiMcuNumber = tuya_wifi_mcu_ns.class_('TuyaWifiMcuNumber', number.Number, cg.Component)
+TuyaWifiMcuNumber = tuya_wifi_mcu_ns.class_("TuyaWifiMcuNumber", number.Number, cg.Component, TuyaWifiMcuEntity)
 
-CONFIG_SCHEMA = number.number_schema(tuyaWifiMcuNumber).extend({
-    cv.GenerateID(): cv.declare_id(tuyaWifiMcuNumber),
-    cv.GenerateID("tuya_wifi_mcu_id"): cv.use_id(TuyaWifiMcuComponent),
+CONFIG_SCHEMA = number.number_schema(TuyaWifiMcuNumber).extend({
     cv.Required("dp_id"): cv.int_,
-    cv.Optional("bind_number_id"): cv.use_id(number)
+    # เพิ่มตัวเลือกสำหรับใส่ ID ของ Number ที่ต้องการ Bind
+    cv.Optional("bind_id"): cv.use_id(number.Number),
 }).extend(cv.COMPONENT_SCHEMA)
 
-def to_code(config):
-    paren = yield cg.get_variable(config["tuya_wifi_mcu_id"])
-    var = cg.new_Pvariable(config[CONF_ID])
-    yield cg.register_component(var, config)
-    yield number.register_number(var, config)
+async def to_code(config):
+    var = await number.new_number(config, min_value=0, max_value=100, step= step)
+    await cg.register_component(var, config)
     cg.add(var.set_dp_id(config["dp_id"]))
-    if "bind_number_id" in config:
-        bind_number = yield cg.get_variable(config["bind_number_id"])
+    
+    # ถ้ามีการกำหนด bind_id ให้ทำความรู้จักกันในระดับโค้ด C++
+    if "bind_id" in config:
+        bind_number = await cg.get_variable(config["bind_id"])
         cg.add(var.set_bind_number(bind_number))
-    cg.add(paren.register_tuya_wifi_mcu_entity(var))
