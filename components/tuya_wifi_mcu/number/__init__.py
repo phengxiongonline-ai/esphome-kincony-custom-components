@@ -5,7 +5,7 @@ from .. import tuya_wifi_mcu_ns, TuyaWifiMcuEntity
 
 TuyaWifiMcuNumber = tuya_wifi_mcu_ns.class_("TuyaWifiMcuNumber", number.Number, cg.Component, TuyaWifiMcuEntity)
 
-CONFIG_SCHEMA = number.number_schema(TuyaWifiMcuNumber).extend({
+CONFIG_SCHEMA = number._number_schema(TuyaWifiMcuNumber).extend({
     cv.Required("dp_id"): cv.int_,
     # เพิ่มตัวเลือกสำหรับใส่ ID ของ Number ที่ต้องการ Bind
     cv.Optional("bind_id"): cv.use_id(number.Number),
