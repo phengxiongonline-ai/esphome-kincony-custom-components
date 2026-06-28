@@ -1,5 +1,4 @@
-#include "tuya_number.h"
-
+#include "tuya_wifi_mcu_number.h"
 namespace esphome {
   namespace tuya_wifi_mcu {
     void TuyaWifiMcuNumber::setup() {

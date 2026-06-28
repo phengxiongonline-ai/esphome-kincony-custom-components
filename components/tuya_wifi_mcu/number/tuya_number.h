@@ -1,6 +1,8 @@
 #pragma once
 #include "esphome.h"
+#include "esphome/core/component.h"
 #include "esphome/components/number/number.h"
+
 #include "../tuya_wifi_mcu_entity.h"
 
 namespace esphome {
