@@ -1,23 +1,31 @@
 #pragma once
-
-#include "esphome/core/component.h"
+#include "esphome.h"
 #include "esphome/components/number/number.h"
-#include "../tuya_wifi_mcu_entity.h" // ดึงโครงสร้างเอ็นทิตี้สากลมาร่วมงาน
+#include "../tuya_wifi_mcu_entity.h"
 
 namespace esphome {
-namespace tuya_wifi_mcu {
+  namespace tuya_wifi_mcu {
+    class TuyaWifiMcuNumber : public TuyaWifiMcuEntity, public Component, public number::Number {
+    public:
+      void set_dp_id(uint8_t dp_id) { this->dp_id_ = dp_id; };
+      
+      // เพิ่มฟังก์ชันสำหรับผูก (Bind) เข้ากับ Number ตัวอื่นใน HA
+      void set_bind_number(number::Number* bind_number) { 
+        this->is_bind_ = true;
+        this->bind_number_ = bind_number;
+      };
 
-class TuyaNumber : public number::Number, public Component, public TuyaWiFiMCUEntity {
- public:
-  void setup() override;
-  
-  // ขาเข้า: รับฟังค่าตัวเลขที่ชิป Tuya รายงานมา
-  void process_dp_data(const uint8_t *value, size_t length) override; 
+      uint8_t get_dp_type() override { return DP_TYPE_VALUE; };
+      void setup() override;
+      void dump_config() override;
+      void process_dp_data(const unsigned char value[], unsigned short length) override;
+      void report_tuya_dp_state() override;
 
- protected:
-  // ขาออก: สั่งงานตอนเรากดสไลเดอร์ตัวเลขบนหน้าจอ
-  void control(float value) override; 
-};
-
-}  // namespace tuya_wifi_mcu
-}  // namespace esphome
+    protected:
+      void control(float value) override; // ฟังก์ชันรับค่าจาก HA ไปสั่ง Tuya
+      
+      bool is_bind_ = false;
+      number::Number* bind_number_ = nullptr;
+    };
+  }
+}

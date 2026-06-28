@@ -1,26 +1,22 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import sensor
+from .. import tuya_wifi_mcu_ns, TuyaWifiMcuEntity
 
-tuya_ns = cg.esphome_ns.namespace("tuya_wifi_mcu")
-TuyaSensor = tuya_ns.class_("TuyaSensor", sensor.Sensor, cg.Component)
+TuyaWifiMcuSensor = tuya_wifi_mcu_ns.class_("TuyaWifiMcuSensor", sensor.Sensor, cg.Component, TuyaWifiMcuEntity)
 
-CONF_ID = "id"
-CONF_TUYA_WIFI_MCU_ID = "tuya_wifi_mcu_id"
-CONF_TUYA_DP_ID = "tuya_dp_id"
-
-CONFIG_SCHEMA = sensor.SENSOR_SCHEMA.extend({
-    cv.GenerateID(): cv.declare_id(TuyaSensor),
-    cv.Required(CONF_TUYA_WIFI_MCU_ID): cv.use_id(tuya_ns.class_("TuyaWiFiMCUComponent")),
-    cv.Required(CONF_TUYA_DP_ID): cv.uint8_t,
+CONFIG_SCHEMA = sensor.sensor_schema(TuyaWifiMcuSensor).extend({
+    cv.Required("dp_id"): cv.int_,
+    # เพิ่มตัวเลือกสำหรับใส่ ID ของ Sensor ที่ต้องการ Bind
+    cv.Optional("bind_id"): cv.use_id(sensor.Sensor),
 }).extend(cv.COMPONENT_SCHEMA)
 
 async def to_code(config):
-    var = cg.new_Pvariable(config[CONF_ID])
+    var = await sensor.new_sensor(config)
     await cg.register_component(var, config)
-    await sensor.register_sensor(var, config)
+    cg.add(var.set_dp_id(config["dp_id"]))
     
-    cg.add(var.set_dp_id(config[CONF_TUYA_DP_ID]))
-    
-    parent = await cg.get_variable(config[CONF_TUYA_WIFI_MCU_ID])
-    cg.add(parent.register_entity(var))
+    # ถ้ามีการกำหนด bind_id ให้ทำความรู้จักกันในระดับโค้ด C++
+    if "bind_id" in config:
+        bind_sensor = await cg.get_variable(config["bind_id"])
+        cg.add(var.set_bind_sensor(bind_sensor))
