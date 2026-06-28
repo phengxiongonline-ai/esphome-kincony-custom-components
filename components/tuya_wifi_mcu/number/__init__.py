@@ -1,7 +1,8 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import number
-from .. import tuya_wifi_mcu_ns, TuyaWifiMcuEntity
+from esphome.components import number 
+from esphome.const import CONF_ID
+from .. import TuyaWifiMcuComponent
 
 TuyaWifiMcuNumber = tuya_wifi_mcu_ns.class_("TuyaWifiMcuNumber", number.Number, cg.Component, TuyaWifiMcuEntity)
 
